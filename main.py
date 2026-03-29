@@ -6,13 +6,22 @@ from datetime import datetime, date, timedelta
 import httpx
 import json
 import os
+import re
 
 from database import get_db, Base, engine, User, Task, ChatMessage, SessionLog
+from email_service import (
+    send_verification_email, 
+    send_welcome_email, 
+    is_email_configured
+)
 
 # Пересоздаём таблицы
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+# Настройка: требовать подтверждение email (можно отключить для разработки)
+REQUIRE_EMAIL_VERIFICATION = os.getenv("REQUIRE_EMAIL_VERIFICATION", "true").lower() == "true"
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # OpenRouter API
@@ -197,6 +206,86 @@ async def ask_mentor(task: Task, messages: list, user_message: str, user_name: s
         return f"Ошибка: {str(e)}"
 
 
+# === ВАЛИДАЦИЯ ===
+
+def validate_email(email: str) -> tuple[bool, str]:
+    """Проверка email"""
+    if not email or not email.strip():
+        return False, "Email обязателен"
+    
+    email = email.strip().lower()
+    
+    # Проверка длины
+    if len(email) > 254:
+        return False, "Email слишком длинный"
+    
+    # Базовая проверка формата
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_regex, email):
+        return False, "Неверный формат email"
+    
+    # Проверка домена
+    domain = email.split('@')[1]
+    if domain.startswith('.') or domain.endswith('.') or '..' in domain:
+        return False, "Неверный домен email"
+    
+    return True, email
+
+
+def validate_password(password: str) -> tuple[bool, list[str]]:
+    """Проверка пароля по правилам"""
+    errors = []
+    
+    if not password:
+        return False, ["Пароль обязателен"]
+    
+    # Минимальная длина
+    if len(password) < 8:
+        errors.append("Пароль должен быть минимум 8 символов")
+    
+    # Максимальная длина
+    if len(password) > 128:
+        errors.append("Пароль слишком длинный")
+    
+    # Заглавная буква
+    if not re.search(r'[A-ZА-ЯЁ]', password):
+        errors.append("Нужна хотя бы одна заглавная буква")
+    
+    # Строчная буква
+    if not re.search(r'[a-zа-яё]', password):
+        errors.append("Нужна хотя бы одна строчная буква")
+    
+    # Цифра
+    if not re.search(r'[0-9]', password):
+        errors.append("Нужна хотя бы одна цифра")
+    
+    # Спецсимвол
+    if not re.search(r'[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]', password):
+        errors.append("Нужен хотя бы один спецсимвол (!@#$%^&*...)")
+    
+    # Пробелы запрещены
+    if ' ' in password:
+        errors.append("Пароль не должен содержать пробелы")
+    
+    return len(errors) == 0, errors
+
+
+def validate_name(name: str) -> tuple[bool, str]:
+    """Проверка имени"""
+    if not name or not name.strip():
+        return False, "Имя обязательно"
+    
+    name = name.strip()
+    
+    if len(name) < 2:
+        return False, "Имя должно быть минимум 2 символа"
+    
+    if len(name) > 50:
+        return False, "Имя слишком длинное"
+    
+    return True, name
+
+
 # === AUTH API ===
 
 @app.post("/api/register")
@@ -207,27 +296,66 @@ async def register(request: Request, db: Session = Depends(get_db)):
     email = data.get("email", "").strip().lower()
     password = data.get("password", "")
     
-    if not name or not email or not password:
-        raise HTTPException(400, "Заполните все поля")
+    # Валидация имени
+    name_valid, name_result = validate_name(name)
+    if not name_valid:
+        raise HTTPException(400, name_result)
+    name = name_result
     
-    if len(password) < 6:
-        raise HTTPException(400, "Пароль минимум 6 символов")
+    # Валидация email
+    email_valid, email_result = validate_email(email)
+    if not email_valid:
+        raise HTTPException(400, email_result)
+    email = email_result
+    
+    # Валидация пароля
+    password_valid, password_errors = validate_password(password)
+    if not password_valid:
+        raise HTTPException(400, password_errors[0])
     
     # Проверяем существует ли пользователь
     existing = db.query(User).filter(User.email == email).first()
     if existing:
-        raise HTTPException(400, "Email уже зарегистрирован")
+        # Если не подтверждён и токен истёк — можно перерегистрировать
+        if not existing.is_verified and existing.verification_token_expires:
+            if datetime.now() > existing.verification_token_expires:
+                db.delete(existing)
+                db.commit()
+            else:
+                raise HTTPException(400, "Email уже зарегистрирован. Проверь почту для подтверждения.")
+        else:
+            raise HTTPException(400, "Email уже зарегистрирован")
     
+    # Создаём пользователя
     user = User(
         name=name,
         email=email,
-        password_hash=User.hash_password(password)
+        password_hash=User.hash_password(password),
+        is_verified=not REQUIRE_EMAIL_VERIFICATION  # Если верификация отключена — сразу подтверждён
     )
+    
     db.add(user)
     db.commit()
     db.refresh(user)
     
-    return {"success": True, "user_id": user.id, "name": user.name}
+    # Отправляем письмо с подтверждением
+    email_sent = False
+    if REQUIRE_EMAIL_VERIFICATION and is_email_configured():
+        token = user.set_verification_token(hours_valid=24)
+        db.commit()
+        
+        success, message = send_verification_email(email, name, token)
+        email_sent = success
+        if not success:
+            print(f"Failed to send verification email: {message}")
+    
+    return {
+        "success": True, 
+        "user_id": user.id, 
+        "name": user.name,
+        "requires_verification": REQUIRE_EMAIL_VERIFICATION and not user.is_verified,
+        "email_sent": email_sent
+    }
 
 
 @app.post("/api/login")
@@ -242,7 +370,81 @@ async def login(request: Request, db: Session = Depends(get_db)):
     if not user or not user.check_password(password):
         raise HTTPException(401, "Неверный email или пароль")
     
+    # Проверяем подтверждён ли email
+    if REQUIRE_EMAIL_VERIFICATION and not user.is_verified:
+        raise HTTPException(403, "Подтверди email для входа. Проверь почту.")
+    
     return {"success": True, "user_id": user.id, "name": user.name}
+
+
+@app.post("/api/verify-email")
+async def verify_email(request: Request, db: Session = Depends(get_db)):
+    """Подтверждение email по токену"""
+    data = await request.json()
+    token = data.get("token", "").strip()
+    
+    if not token:
+        raise HTTPException(400, "Токен не указан")
+    
+    # Ищем пользователя с таким токеном
+    user = db.query(User).filter(User.verification_token == token).first()
+    
+    if not user:
+        raise HTTPException(400, "Неверный или устаревший токен")
+    
+    # Проверяем срок действия
+    if not user.is_token_valid():
+        raise HTTPException(400, "Ссылка устарела. Запроси новую.")
+    
+    # Подтверждаем email
+    user.is_verified = True
+    user.verification_token = None
+    user.verification_token_expires = None
+    db.commit()
+    
+    # Отправляем приветственное письмо
+    if is_email_configured():
+        send_welcome_email(user.email, user.name)
+    
+    return {
+        "success": True, 
+        "message": "Email подтверждён!",
+        "user_id": user.id,
+        "name": user.name
+    }
+
+
+@app.post("/api/resend-verification")
+async def resend_verification(request: Request, db: Session = Depends(get_db)):
+    """Повторная отправка письма подтверждения"""
+    data = await request.json()
+    email = data.get("email", "").strip().lower()
+    
+    if not email:
+        raise HTTPException(400, "Email не указан")
+    
+    user = db.query(User).filter(User.email == email).first()
+    
+    if not user:
+        # Не говорим что пользователь не найден (безопасность)
+        return {"success": True, "message": "Если аккаунт существует, письмо отправлено"}
+    
+    if user.is_verified:
+        return {"success": True, "message": "Email уже подтверждён"}
+    
+    if not is_email_configured():
+        raise HTTPException(500, "Email сервис не настроен")
+    
+    # Генерируем новый токен
+    token = user.set_verification_token(hours_valid=24)
+    db.commit()
+    
+    success, message = send_verification_email(email, user.name, token)
+    
+    if not success:
+        raise HTTPException(500, f"Ошибка отправки: {message}")
+    
+    return {"success": True, "message": "Письмо отправлено"}
 
 
 # === TASKS API ===

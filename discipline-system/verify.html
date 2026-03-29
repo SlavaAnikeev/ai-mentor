@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение Email — DISCIPLINE</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .verify-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .verify-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 50px 40px;
+            text-align: center;
+        }
+        
+        .verify-icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+        }
+        
+        .verify-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+        
+        .verify-message {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .verify-status {
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        
+        .verify-status.loading {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+        
+        .verify-status.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 3px solid var(--success);
+            color: var(--success);
+        }
+        
+        .verify-status.error {
+            background: rgba(255, 51, 51, 0.1);
+            border-left: 3px solid var(--accent);
+            color: var(--accent);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .verify-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 25px;
+            display: inline-block;
+        }
+        
+        .back-link:hover {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body class="auth-page">
+    <div class="verify-container">
+        <div class="verify-card">
+            <a href="index.html" class="logo" style="display: block; text-align: center; margin-bottom: 40px; text-decoration: none;">DISCIPLINE</a>
+            
+            <div id="verify-content">
+                <!-- Состояние загрузки -->
+                <div id="state-loading">
+                    <div class="verify-icon">📧</div>
+                    <h1 class="verify-title">Подтверждение Email</h1>
+                    <div class="verify-status loading">
+                        <span class="spinner"></span>
+                        Проверяем ссылку...
+                    </div>
+                </div>
+                
+                <!-- Состояние успеха -->
+                <div id="state-success" style="display: none;">
+                    <div class="verify-icon">✅</div>
+                    <h1 class="verify-title">Email подтверждён!</h1>
+                    <p class="verify-message">
+                        Отлично! Теперь ты можешь войти в свой аккаунт и начать путь к целям.
+                    </p>
+                    <div class="verify-actions">
+                        <a href="auth.html" class="primary-btn">Войти</a>
+                    </div>
+                </div>
+                
+                <!-- Состояние ошибки -->
+                <div id="state-error" style="display: none;">
+                    <div class="verify-icon">❌</div>
+                    <h1 class="verify-title">Ошибка</h1>
+                    <p class="verify-message" id="error-message">
+                        Ссылка недействительна или устарела.
+                    </p>
+                    <div class="verify-actions">
+                        <button id="resend-btn" class="primary-btn">Отправить новую ссылку</button>
+                        <a href="auth.html" class="secondary-btn">Вернуться к входу</a>
+                    </div>
+                </div>
+                
+                <!-- Состояние без токена -->
+                <div id="state-no-token" style="display: none;">
+                    <div class="verify-icon">📬</div>
+                    <h1 class="verify-title">Проверь почту</h1>
+                    <p class="verify-message">
+                        Мы отправили ссылку для подтверждения на твой email.<br>
+                        Перейди по ней, чтобы активировать аккаунт.
+                    </p>
+                    <div class="verify-status" style="background: var(--bg-secondary); border-left: 3px solid var(--border); color: var(--text-secondary);">
+                        💡 Не получил письмо? Проверь папку "Спам"
+                    </div>
+                    <div class="verify-actions">
+                        <button id="resend-btn-alt" class="secondary-btn">Отправить повторно</button>
+                    </div>
+                    <a href="auth.html" class="back-link">← Вернуться к входу</a>
+                </div>
+                
+                <!-- Повторная отправка -->
+                <div id="state-resend" style="display: none;">
+                    <div class="verify-icon">📧</div>
+                    <h1 class="verify-title">Повторная отправка</h1>
+                    <p class="verify-message">
+                        Введи email, на который зарегистрирован аккаунт:
+                    </p>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <input type="email" id="resend-email" placeholder="your@email.com" style="text-align: center;">
+                        <div id="resend-error" class="form-error" style="display: none;"></div>
+                    </div>
+                    <div class="verify-actions">
+                        <button id="send-link-btn" class="primary-btn">Отправить ссылку</button>
+                        <button id="back-btn" class="secondary-btn">Назад</button>
+                    </div>
+                </div>
+                
+                <!-- Письмо отправлено -->
+                <div id="state-sent" style="display: none;">
+                    <div class="verify-icon">✉️</div>
+                    <h1 class="verify-title">Письмо отправлено!</h1>
+                    <p class="verify-message">
+                        Проверь почту и перейди по ссылке в письме.
+                    </p>
+                    <a href="auth.html" class="primary-btn" style="display: block; text-decoration: none; text-align: center;">Понятно</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = window.location.origin;
+        
+        // Получаем токен из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const emailParam = urlParams.get('email');
+        
+        // Элементы состояний
+        const states = {
+            loading: document.getElementById('state-loading'),
+            success: document.getElementById('state-success'),
+            error: document.getElementById('state-error'),
+            noToken: document.getElementById('state-no-token'),
+            resend: document.getElementById('state-resend'),
+            sent: document.getElementById('state-sent')
+        };
+        
+        function showState(stateName) {
+            Object.values(states).forEach(el => el.style.display = 'none');
+            if (states[stateName]) {
+                states[stateName].style.display = 'block';
+            }
+        }
+        
+        // Подтверждение email
+        async function verifyEmail() {
+            try {
+                const response = await fetch(`${API_URL}/api/verify-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: token })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showState('success');
+                    
+                    // Сохраняем сессию
+                    localStorage.setItem('discipline_auth', JSON.stringify({
+                        id: data.user_id,
+                        name: data.name,
+                        email: emailParam || ''
+                    }));
+                } else {
+                    document.getElementById('error-message').textContent = 
+                        data.detail || 'Ссылка недействительна или устарела.';
+                    showState('error');
+                }
+            } catch (error) {
+                document.getElementById('error-message').textContent = 
+                    'Ошибка подключения к серверу';
+                showState('error');
+            }
+        }
+        
+        // Повторная отправка
+        async function resendVerification(email) {
+            try {
+                const response = await fetch(`${API_URL}/api/resend-verification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showState('sent');
+                } else {
+                    document.getElementById('resend-error').textContent = 
+                        data.detail || 'Ошибка отправки';
+                    document.getElementById('resend-error').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('resend-error').textContent = 
+                    'Ошибка подключения к серверу';
+                document.getElementById('resend-error').style.display = 'block';
+            }
+        }
+        
+        // Инициализация
+        if (token) {
+            // Есть токен — проверяем
+            verifyEmail();
+        } else if (emailParam) {
+            // Есть email — показываем "проверь почту"
+            showState('noToken');
+        } else {
+            // Ничего нет — форма повторной отправки
+            showState('resend');
+        }
+        
+        // Обработчики кнопок
+        document.getElementById('resend-btn')?.addEventListener('click', () => {
+            showState('resend');
+        });
+        
+        document.getElementById('resend-btn-alt')?.addEventListener('click', () => {
+            showState('resend');
+            if (emailParam) {
+                document.getElementById('resend-email').value = emailParam;
+            }
+        });
+        
+        document.getElementById('back-btn')?.addEventListener('click', () => {
+            if (token) {
+                showState('error');
+            } else {
+                showState('noToken');
+            }
+        });
+        
+        document.getElementById('send-link-btn')?.addEventListener('click', () => {
+            const email = document.getElementById('resend-email').value.trim();
+            if (!email) {
+                document.getElementById('resend-error').textContent = 'Введи email';
+                document.getElementById('resend-error').style.display = 'block';
+                return;
+            }
+            resendVerification(email);
+        });
+        
+        // Enter для отправки
+        document.getElementById('resend-email')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('send-link-btn').click();
+            }
+        });
+    </script>
+</body>
+</html>

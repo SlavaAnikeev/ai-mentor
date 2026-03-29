@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, JSON, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
+import secrets
 
 Base = declarative_base()
 
@@ -16,12 +17,34 @@ class User(Base):
     password_hash = Column(String)
     created_at = Column(DateTime, default=datetime.now)
     
+    # Email верификация
+    is_verified = Column(Boolean, default=False)  # Подтверждён ли email
+    verification_token = Column(String, nullable=True)  # Токен для подтверждения
+    verification_token_expires = Column(DateTime, nullable=True)  # Срок действия токена
+    
     @staticmethod
     def hash_password(password: str) -> str:
         return hashlib.sha256(password.encode()).hexdigest()
     
     def check_password(self, password: str) -> bool:
         return self.password_hash == self.hash_password(password)
+    
+    @staticmethod
+    def generate_verification_token() -> str:
+        """Генерирует случайный токен для подтверждения"""
+        return secrets.token_urlsafe(32)
+    
+    def set_verification_token(self, hours_valid: int = 24):
+        """Устанавливает токен верификации"""
+        self.verification_token = self.generate_verification_token()
+        self.verification_token_expires = datetime.now() + timedelta(hours=hours_valid)
+        return self.verification_token
+    
+    def is_token_valid(self) -> bool:
+        """Проверяет действительность токена"""
+        if not self.verification_token or not self.verification_token_expires:
+            return False
+        return datetime.now() < self.verification_token_expires
 
 
 class Task(Base):

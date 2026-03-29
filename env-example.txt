@@ -1,0 +1,33 @@
+# === DISCIPLINE Environment Variables ===
+# Переименуй этот файл в .env
+
+# OpenRouter API для AI-наставников
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+
+# === Email Configuration ===
+# Для Gmail: используй "Пароль приложения" (не обычный пароль!)
+# Настройки → Безопасность → Двухфакторная аутентификация → Пароли приложений
+
+# SMTP сервер (примеры):
+# Gmail:    smtp.gmail.com
+# Yandex:   smtp.yandex.ru
+# Mail.ru:  smtp.mail.ru
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+
+# Твой email (от которого отправляются письма)
+SMTP_USER=your.email@gmail.com
+
+# Пароль приложения (НЕ обычный пароль аккаунта!)
+SMTP_PASSWORD=xxxx xxxx xxxx xxxx
+
+# Имя отправителя (отображается в письмах)
+SMTP_FROM_NAME=DISCIPLINE
+SMTP_FROM_EMAIL=your.email@gmail.com
+
+# URL приложения (для ссылок в письмах)
+APP_URL=http://localhost:8000
+
+# Требовать подтверждение email? (true/false)
+# Поставь false для разработки, true для продакшена
+REQUIRE_EMAIL_VERIFICATION=true
