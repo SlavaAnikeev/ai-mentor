@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DISCIPLINE — Вход</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <a href="index.html" class="logo">DISCIPLINE</a>
+        
+        <!-- Форма входа -->
+        <div id="login-form" class="auth-form active">
+            <h1>Вход</h1>
+            <p class="auth-desc">Вернись к своим целям</p>
+            
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="your@email.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="login-password">Пароль</label>
+                <input type="password" id="login-password" placeholder="••••••••">
+            </div>
+            
+            <button id="login-btn" class="primary-btn">Войти</button>
+            
+            <p class="auth-switch">
+                Нет аккаунта? <a href="#" id="show-register">Зарегистрироваться</a>
+            </p>
+        </div>
+        
+        <!-- Форма регистрации -->
+        <div id="register-form" class="auth-form">
+            <h1>Регистрация</h1>
+            <p class="auth-desc">Начни путь к результату</p>
+            
+            <div class="form-group">
+                <label for="register-name">Имя</label>
+                <input type="text" id="register-name" placeholder="Как тебя называть?">
+            </div>
+            
+            <div class="form-group">
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email" placeholder="your@email.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="register-password">Пароль</label>
+                <input type="password" id="register-password" placeholder="Минимум 6 символов">
+            </div>
+            
+            <div class="form-group">
+                <label for="register-password-confirm">Подтверди пароль</label>
+                <input type="password" id="register-password-confirm" placeholder="Ещё раз">
+            </div>
+            
+            <button id="register-btn" class="primary-btn">Создать аккаунт</button>
+            
+            <p class="auth-switch">
+                Уже есть аккаунт? <a href="#" id="show-login">Войти</a>
+            </p>
+        </div>
+    </div>
+    
+    <script src="js/auth.js"></script>
+</body>
+</html>

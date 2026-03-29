@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DISCIPLINE — Система</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="app">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <a href="index.html" class="logo-small">DISCIPLINE</a>
+            <nav class="app-nav">
+                <a href="app.html" class="nav-link active">Цели</a>
+                <a href="profile.html" class="nav-link">Профиль</a>
+                <button id="logout-btn" class="nav-link logout">Выйти</button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            
+            <!-- Stage 0: Goals List -->
+            <section id="stage-goals-list" class="stage">
+                <div class="stage-content">
+                    <div class="goals-header">
+                        <h1>Мои цели</h1>
+                        <button id="add-goal-btn" class="add-goal-btn">+ Добавить цель</button>
+                    </div>
+                    
+                    <div id="my-goals-list" class="my-goals-list">
+                        <!-- Goals will be inserted here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stage 1: Goal Input -->
+            <section id="stage-goal" class="stage active">
+                <div class="stage-content">
+                    <h1>Какая твоя цель?</h1>
+                    <p class="stage-desc">Опиши своими словами. Финансовая, карьерная, навык — любая.</p>
+                    
+                    <div class="goal-examples">
+                        <p class="examples-title">Примеры:</p>
+                        <div class="example-chips">
+                            <span class="example-chip" data-text="Хочу зарабатывать 200 000 рублей в месяц">💰 Зарабатывать 200к</span>
+                            <span class="example-chip" data-text="Найти работу программистом с зарплатой 150 000">💼 Найти работу</span>
+                            <span class="example-chip" data-text="Выучить английский до уровня B2">🎯 Выучить английский</span>
+                            <span class="example-chip" data-text="Научиться программировать на Python">🎯 Научиться программировать</span>
+                            <span class="example-chip" data-text="Запустить свой интернет-магазин">🚀 Запустить проект</span>
+                        </div>
+                    </div>
+                    
+                    <div class="goal-text-input">
+                        <textarea id="goal-text" placeholder="Например: Хочу найти работу с зарплатой 200 000 рублей..."></textarea>
+                    </div>
+                    
+                    <div id="goal-detected" class="goal-detected hidden">
+                        <span class="detected-label">Определено:</span>
+                        <span id="detected-type" class="detected-type">💰 Финансовая цель</span>
+                        <span id="detected-amount" class="detected-amount"></span>
+                    </div>
+                    
+                    <button id="submit-goal" class="primary-btn">Зафиксировать цель</button>
+                    <button id="back-to-goals" class="secondary-btn hidden">Назад к целям</button>
+                </div>
+            </section>
+
+            <!-- Stage 2: Questions -->
+            <section id="stage-questions" class="stage">
+                <div class="stage-content">
+                    <div class="goal-fixed">
+                        <span>Цель:</span>
+                        <strong id="display-goal">200 000 ₽/мес</strong>
+                    </div>
+                    
+                    <h2 id="current-question">Загрузка вопроса...</h2>
+                    
+                    <div id="question-options" class="options-grid">
+                        <!-- Options will be inserted here -->
+                    </div>
+                    
+                    <div id="question-input-container" class="input-container hidden">
+                        <input type="text" id="question-input" placeholder="Введите ответ">
+                        <button id="submit-answer-input" class="primary-btn">Далее</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stage 3: Strategy -->
+            <section id="stage-strategy" class="stage">
+                <div class="stage-content">
+                    <div class="goal-fixed">
+                        <span>Цель:</span>
+                        <strong id="display-goal-2">200 000 ₽/мес</strong>
+                    </div>
+                    
+                    <h2>Твоя стратегия определена</h2>
+                    
+                    <div id="strategy-card" class="strategy-card">
+                        <div class="strategy-name" id="strategy-name">Фриланс</div>
+                        <div class="strategy-desc" id="strategy-desc">Описание стратегии</div>
+                        <div class="strategy-path" id="strategy-path">Путь к цели</div>
+                    </div>
+                    
+                    <div class="strategy-warning">
+                        <p>Это не рекомендация. Это направление. Следуй ему или признай, что не хочешь достичь цели.</p>
+                    </div>
+                    
+                    <button id="accept-strategy" class="primary-btn">Принять и получить задачи</button>
+                </div>
+            </section>
+
+            <!-- Stage 4: Daily Tasks -->
+            <section id="stage-tasks" class="stage">
+                <div class="stage-content">
+                    <div class="goal-fixed">
+                        <span>Цель:</span>
+                        <strong id="display-goal-3">200 000 ₽/мес</strong>
+                        <span class="day-counter">День <span id="current-day">1</span></span>
+                    </div>
+                    
+                    <h2>Задачи на сегодня</h2>
+                    <p class="tasks-instruction">Только конкретные действия. Выполни все. Без оправданий.</p>
+                    
+                    <div id="tasks-list" class="tasks-list">
+                        <!-- Tasks will be inserted here -->
+                    </div>
+                    
+                    <button id="go-to-report" class="primary-btn">Заполнить отчёт</button>
+                </div>
+            </section>
+
+            <!-- Stage 5: Report -->
+            <section id="stage-report" class="stage">
+                <div class="stage-content">
+                    <div class="goal-fixed">
+                        <span>Цель:</span>
+                        <strong id="display-goal-4">200 000 ₽/мес</strong>
+                        <span class="day-counter">День <span id="current-day-2">1</span></span>
+                    </div>
+                    
+                    <h2>Отчёт за день</h2>
+                    <p class="report-instruction">Отметь выполненные задачи. Опиши результат. Не ври себе.</p>
+                    
+                    <div id="report-tasks" class="report-tasks">
+                        <!-- Report checkboxes will be inserted here -->
+                    </div>
+                    
+                    <div class="report-details">
+                        <label for="report-text">Что конкретно ты сделал? Результаты:</label>
+                        <textarea id="report-text" placeholder="Написал 10 сообщений, получил 2 ответа, 0 заказов..."></textarea>
+                    </div>
+                    
+                    <div class="report-details">
+                        <label for="report-obstacles">Что помешало выполнить остальное?</label>
+                        <textarea id="report-obstacles" placeholder="Будь честен. Не оправдания, а факты."></textarea>
+                    </div>
+                    
+                    <button id="submit-report" class="primary-btn">Отправить на анализ</button>
+                </div>
+            </section>
+
+            <!-- Stage 6: Analysis -->
+            <section id="stage-analysis" class="stage">
+                <div class="stage-content">
+                    <div class="goal-fixed">
+                        <span>Цель:</span>
+                        <strong id="display-goal-5">200 000 ₽/мес</strong>
+                        <span class="day-counter">День <span id="current-day-3">1</span></span>
+                    </div>
+                    
+                    <h2>Анализ</h2>
+                    
+                    <div id="analysis-content" class="analysis-content">
+                        <!-- Analysis will be inserted here -->
+                    </div>
+                    
+                    <div id="analysis-questions" class="analysis-questions hidden">
+                        <h3>Ответь честно:</h3>
+                        <div id="hard-questions"></div>
+                    </div>
+                    
+                    <button id="next-day" class="primary-btn">Следующий день</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/goals.js"></script>
+    <script src="js/knowledge-base.js"></script>
+    <script src="js/smart-tasks.js"></script>
+    <script src="js/quiz-system.js"></script>
+    <script src="js/strategies.js"></script>
+    <script src="js/analyzer.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

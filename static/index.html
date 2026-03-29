@@ -1,0 +1,333 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Наставник</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f0f1a;color:#e0e0e0;min-height:100vh}
+        .app{max-width:500px;margin:0 auto;min-height:100vh}
+        .screen{display:none}.screen.active{display:flex;flex-direction:column;min-height:100vh}
+        .header{padding:16px 20px;background:#1a1a2e;border-bottom:1px solid #2a2a3e;display:flex;align-items:center;gap:12px}
+        .back-btn{background:none;border:none;color:#888;font-size:20px;cursor:pointer;padding:8px;border-radius:8px}
+        .back-btn:hover{background:#2a2a3e;color:#fff}
+        .header-title{flex:1}.header-title h1{font-size:18px}.header-title .subtitle{font-size:13px;color:#888}
+        .auth-container{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
+        .auth-box{background:#1a1a2e;border-radius:20px;padding:32px;width:100%;max-width:360px}
+        .auth-box h1{text-align:center;margin-bottom:8px}.auth-box .subtitle{text-align:center;color:#888;margin-bottom:24px}
+        .form-group{margin-bottom:16px}.form-group label{display:block;margin-bottom:6px;color:#888;font-size:14px}
+        .form-group input,.form-group select,.form-group textarea{width:100%;background:#0f0f1a;border:1px solid #2a2a3e;border-radius:10px;padding:12px 16px;color:#fff;font-size:15px;outline:none}
+        .form-group input:focus{border-color:#6c5ce7}
+        .auth-btn{width:100%;background:#6c5ce7;border:none;border-radius:10px;padding:14px;color:#fff;font-size:16px;cursor:pointer;margin-top:8px}
+        .auth-btn:hover{background:#5b4bd4}
+        .auth-switch{text-align:center;margin-top:16px;color:#888;font-size:14px}
+        .auth-switch a{color:#6c5ce7;cursor:pointer}
+        .tasks-container{padding:20px;flex:1;overflow-y:auto}
+        .section-label{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+        .stats-bar{background:#1a1a2e;border-radius:16px;padding:16px;margin-bottom:20px;display:flex;justify-content:space-around}
+        .stat-item{text-align:center}.stat-item .value{font-size:24px;font-weight:bold;color:#6c5ce7}.stat-item .label{font-size:11px;color:#888}
+        .task-card{background:#1a1a2e;border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .2s;border:1px solid transparent;position:relative}
+        .task-card:hover{border-color:#6c5ce7;transform:translateY(-2px)}
+        .task-card.not-today{opacity:.5}
+        .task-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+        .task-icon{width:44px;height:44px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+        .task-info{flex:1}.task-info h3{font-size:16px;margin-bottom:2px}.task-info .mentor-name{font-size:13px;color:#888}
+        .task-actions{position:absolute;top:12px;right:12px;display:flex;gap:8px}
+        .task-actions button{background:#2a2a3e;border:none;border-radius:6px;padding:6px 10px;color:#888;cursor:pointer;font-size:12px}
+        .task-actions button:hover{background:#3a3a4e;color:#fff}
+        .task-schedule{display:flex;gap:4px;margin-bottom:10px}
+        .day-dot{width:28px;height:28px;border-radius:50%;background:#2a2a3e;display:flex;align-items:center;justify-content:center;font-size:11px;color:#666}
+        .day-dot.active{background:#6c5ce7;color:#fff}.day-dot.today{border:2px solid #fff}
+        .week-progress{display:flex;gap:4px;margin-bottom:10px}
+        .week-dot{width:28px;height:28px;border-radius:8px;background:#2a2a3e;display:flex;align-items:center;justify-content:center;font-size:16px}
+        .week-dot.done{background:#2d5a3f}
+        .task-progress{display:flex;justify-content:space-between;align-items:center}
+        .progress-stats{display:flex;gap:16px;font-size:13px}.stat{color:#888}.stat span{color:#6c5ce7;font-weight:600}
+        .add-task-btn{background:#1a1a2e;border:2px dashed #3a3a4e;border-radius:16px;padding:20px;text-align:center;cursor:pointer;color:#666;transition:all .2s}
+        .add-task-btn:hover{border-color:#6c5ce7;color:#6c5ce7}
+        .chat-container{flex:1;display:flex;flex-direction:column;overflow:hidden}
+        .mentor-info{padding:16px 20px;background:#1a1a2e;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2a2a3e}
+        .mentor-avatar{width:48px;height:48px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px}
+        .mentor-details{flex:1}.mentor-details h2{font-size:16px}.mentor-details .title{font-size:13px;color:#888}
+        .complete-btn{background:#2d5a3f;border:none;border-radius:8px;padding:8px 16px;color:#4caf50;cursor:pointer;font-size:13px}
+        .complete-btn:hover{background:#3d6a4f}
+        .messages{flex:1;padding:20px;overflow-y:auto}
+        .message{margin-bottom:16px;animation:fadeIn .3s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .message.assistant{display:flex;gap:10px}
+        .message.assistant .avatar{width:32px;height:32px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+        .message.assistant .bubble{background:#1a1a2e;padding:12px 16px;border-radius:4px 16px 16px 16px;max-width:85%;line-height:1.6;white-space:pre-wrap}
+        .message.user{display:flex;justify-content:flex-end}
+        .message.user .bubble{background:#6c5ce7;padding:12px 16px;border-radius:16px 4px 16px 16px;max-width:85%;line-height:1.6}
+        .typing-indicator{display:flex;gap:4px;padding:12px 16px}
+        .typing-indicator span{width:8px;height:8px;background:#666;border-radius:50%;animation:typing 1.4s infinite}
+        .typing-indicator span:nth-child(2){animation-delay:.2s}.typing-indicator span:nth-child(3){animation-delay:.4s}
+        @keyframes typing{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+        .input-area{padding:16px 20px;background:#1a1a2e;border-top:1px solid #2a2a3e}
+        .input-wrapper{display:flex;gap:10px;align-items:flex-end}
+        .input-field{flex:1;background:#0f0f1a;border:1px solid #2a2a3e;border-radius:20px;padding:12px 18px;color:#fff;font-size:15px;outline:none;resize:none;max-height:120px;line-height:1.4}
+        .input-field:focus{border-color:#6c5ce7}
+        .send-btn{background:#6c5ce7;border:none;border-radius:50%;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .send-btn:hover{background:#5b4bd4}.send-btn:disabled{background:#3a3a4e;cursor:not-allowed}
+        .send-btn svg{fill:#fff;width:20px;height:20px}
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:100}
+        .modal-overlay.active{display:flex}
+        .modal{background:#1a1a2e;border-radius:20px;padding:24px;width:90%;max-width:400px;max-height:90vh;overflow-y:auto}
+        .modal h2{margin-bottom:20px}
+        .schedule-picker{display:flex;gap:8px;flex-wrap:wrap}
+        .schedule-picker label{display:flex;align-items:center;gap:6px;background:#0f0f1a;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px}
+        .schedule-picker input[type="checkbox"]{display:none}
+        .schedule-picker input:checked+span{color:#6c5ce7;font-weight:bold}
+        .modal-buttons{display:flex;gap:10px;margin-top:20px}
+        .modal-buttons button{flex:1;padding:12px;border-radius:10px;border:none;cursor:pointer;font-size:15px}
+        .btn-cancel{background:#2a2a3e;color:#888}.btn-primary{background:#6c5ce7;color:#fff}
+        .btn-danger{background:#5a2d2d;color:#f44}
+        .user-info{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#1a1a2e;border-bottom:1px solid #2a2a3e}
+        .user-info .name{flex:1;font-size:14px}.user-info .logout{color:#888;cursor:pointer;font-size:13px}
+    </style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script>
+const DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+let user=JSON.parse(localStorage.getItem('user'));
+let tasks=[];
+let currentTaskId=null;
+let currentMentor=null;
+
+function render(){
+    if(!user){renderAuth();return}
+    renderTasks();
+}
+
+function renderAuth(){
+    document.getElementById('app').innerHTML=`
+    <div class="screen active">
+        <div class="auth-container">
+            <div class="auth-box">
+                <h1>👋 Привет!</h1>
+                <p class="subtitle">Войди или создай аккаунт</p>
+                <div id="authForm">
+                    <div class="form-group"><label>Email</label><input type="email" id="email" placeholder="your@email.com"></div>
+                    <div class="form-group"><label>Пароль</label><input type="password" id="password" placeholder="Минимум 6 символов"></div>
+                    <div class="form-group" id="nameGroup" style="display:none"><label>Имя</label><input type="text" id="name" placeholder="Как тебя зовут?"></div>
+                    <button class="auth-btn" onclick="doAuth()">Войти</button>
+                    <div class="auth-switch">Нет аккаунта? <a onclick="toggleAuth()">Регистрация</a></div>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+let isRegister=false;
+function toggleAuth(){
+    isRegister=!isRegister;
+    document.getElementById('nameGroup').style.display=isRegister?'block':'none';
+    document.querySelector('.auth-btn').textContent=isRegister?'Создать аккаунт':'Войти';
+    document.querySelector('.auth-switch').innerHTML=isRegister?'Есть аккаунт? <a onclick="toggleAuth()">Войти</a>':'Нет аккаунта? <a onclick="toggleAuth()">Регистрация</a>';
+}
+
+async function doAuth(){
+    const email=document.getElementById('email').value;
+    const password=document.getElementById('password').value;
+    const name=document.getElementById('name')?.value||'';
+    const url=isRegister?'/api/register':'/api/login';
+    const body=isRegister?{email,password,name}:{email,password};
+    try{
+        const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const data=await res.json();
+        if(data.user_id){user={id:data.user_id,name:data.name};localStorage.setItem('user',JSON.stringify(user));render()}
+        else{alert(data.detail||'Ошибка')}
+    }catch(e){alert('Ошибка подключения')}
+}
+
+function logout(){localStorage.removeItem('user');user=null;render()}
+
+async function loadTasks(){
+    try{const res=await fetch('/api/tasks?user_id='+user.id);tasks=await res.json()}catch(e){tasks=[]}
+}
+
+async function renderTasks(){
+    await loadTasks();
+    const today=new Date().getDay();
+    const todayIdx=today===0?6:today-1;
+    const todayTasks=tasks.filter(t=>t.is_scheduled_today);
+    const otherTasks=tasks.filter(t=>!t.is_scheduled_today);
+    const totalSessions=tasks.reduce((a,t)=>a+t.progress.completed,0);
+    const bestStreak=Math.max(...tasks.map(t=>t.progress.best_streak),0);
+
+    document.getElementById('app').innerHTML=`
+    <div class="screen active">
+        <div class="header"><div class="header-title"><h1>Мои занятия</h1><div class="subtitle">Привет, ${user.name}!</div></div></div>
+        <div class="user-info"><span class="name">👤 ${user.name}</span><span class="logout" onclick="logout()">Выйти</span></div>
+        <div class="tasks-container">
+            <div class="stats-bar">
+                <div class="stat-item"><div class="value">${tasks.length}</div><div class="label">Целей</div></div>
+                <div class="stat-item"><div class="value">${totalSessions}</div><div class="label">Занятий</div></div>
+                <div class="stat-item"><div class="value">${bestStreak}</div><div class="label">Лучшая серия</div></div>
+            </div>
+            <div class="section-label">Сегодня</div>
+            <div id="todayTasks">${todayTasks.length?'':'<div style="color:#666;padding:20px;text-align:center">Нет занятий на сегодня</div>'}</div>
+            <div class="section-label" style="margin-top:24px">Другие дни</div>
+            <div id="otherTasks">${otherTasks.length?'':'<div style="color:#666;padding:20px;text-align:center">-</div>'}</div>
+            <div class="add-task-btn" onclick="showAddModal()">+ Добавить новую цель</div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="addModal"><div class="modal">
+        <h2>Новая цель</h2>
+        <div class="form-group"><label>Название</label><input type="text" id="taskTitle" placeholder="Английский язык"></div>
+        <div class="form-group"><label>Тип наставника</label>
+            <select id="taskCategory">
+                <option value="language">🇬🇧 Язык — Репетитор</option>
+                <option value="career">💼 Карьера — HR-консультант</option>
+                <option value="fitness">💪 Спорт — Тренер</option>
+                <option value="learning">📚 Обучение — Наставник</option>
+                <option value="psychology">🧠 Психология — Психолог</option>
+                <option value="universal">🎯 Другое — Универсальный помощник</option>
+            </select>
+        </div>
+        <div class="form-group"><label>Описание</label><textarea id="taskDesc" rows="2" placeholder="Хочу выучить разговорный английский"></textarea></div>
+        <div class="form-group"><label>Расписание</label>
+            <div class="schedule-picker">${DAYS.map((d,i)=>`<label><input type="checkbox" value="${i}" ${i<5?'checked':''}><span>${d}</span></label>`).join('')}</div>
+        </div>
+        <div class="modal-buttons"><button class="btn-cancel" onclick="hideModal('addModal')">Отмена</button><button class="btn-primary" onclick="createTask()">Создать</button></div>
+    </div></div>
+    <div class="modal-overlay" id="editModal"><div class="modal">
+        <h2>Настройки</h2>
+        <div class="form-group"><label>Расписание</label>
+            <div class="schedule-picker" id="editSchedule">${DAYS.map((d,i)=>`<label><input type="checkbox" value="${i}"><span>${d}</span></label>`).join('')}</div>
+        </div>
+        <div class="modal-buttons"><button class="btn-cancel" onclick="hideModal('editModal')">Отмена</button><button class="btn-danger" onclick="deleteTask()">Удалить</button><button class="btn-primary" onclick="saveSchedule()">Сохранить</button></div>
+    </div></div>`;
+    
+    todayTasks.forEach(t=>document.getElementById('todayTasks').appendChild(createCard(t,todayIdx)));
+    otherTasks.forEach(t=>document.getElementById('otherTasks').appendChild(createCard(t,todayIdx)));
+}
+
+function createCard(task,todayIdx){
+    const card=document.createElement('div');
+    card.className='task-card'+(task.is_scheduled_today?'':' not-today');
+    const scheduleHtml=DAYS.map((d,i)=>`<div class="day-dot ${task.schedule_days.includes(i)?'active':''} ${i===todayIdx?'today':''}">${d}</div>`).join('');
+    const weekHtml=(task.week_history||[]).map(w=>`<div class="week-dot ${w.completed?'done':''}">${w.completed?'✓':''}</div>`).join('');
+    card.innerHTML=`
+        <div class="task-actions"><button onclick="event.stopPropagation();showEditModal(${task.id})">⚙️</button></div>
+        <div class="task-header" onclick="openChat(${task.id})">
+            <div class="task-icon">${task.mentor.avatar}</div>
+            <div class="task-info"><h3>${task.title}</h3><div class="mentor-name">${task.mentor.name} • ${task.mentor.title}</div></div>
+        </div>
+        <div class="task-schedule">${scheduleHtml}</div>
+        <div class="week-progress">${weekHtml}</div>
+        <div class="task-progress" onclick="openChat(${task.id})">
+            <div class="progress-stats">
+                <div class="stat">Занятий: <span>${task.progress.completed}</span></div>
+                <div class="stat">Серия: <span>${task.progress.streak} дн.</span></div>
+                <div class="stat">Рекорд: <span>${task.progress.best_streak}</span></div>
+            </div>
+        </div>`;
+    return card;
+}
+
+function showAddModal(){document.getElementById('addModal').classList.add('active')}
+function hideModal(id){document.getElementById(id).classList.remove('active')}
+
+let editingTaskId=null;
+function showEditModal(id){
+    editingTaskId=id;
+    const task=tasks.find(t=>t.id===id);
+    document.querySelectorAll('#editSchedule input').forEach(cb=>{cb.checked=task.schedule_days.includes(parseInt(cb.value))});
+    document.getElementById('editModal').classList.add('active');
+}
+
+async function saveSchedule(){
+    const days=[];document.querySelectorAll('#editSchedule input:checked').forEach(cb=>days.push(parseInt(cb.value)));
+    await fetch('/api/tasks/'+editingTaskId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({schedule_days:days})});
+    hideModal('editModal');renderTasks();
+}
+
+async function deleteTask(){
+    if(!confirm('Удалить эту цель?'))return;
+    await fetch('/api/tasks/'+editingTaskId,{method:'DELETE'});
+    hideModal('editModal');renderTasks();
+}
+
+async function createTask(){
+    const title=document.getElementById('taskTitle').value.trim();
+    if(!title){alert('Введите название');return}
+    const category=document.getElementById('taskCategory').value;
+    const description=document.getElementById('taskDesc').value;
+    const days=[];document.querySelectorAll('.schedule-picker input:checked').forEach(cb=>days.push(parseInt(cb.value)));
+    await fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:user.id,title,category,description,schedule_days:days})});
+    hideModal('addModal');document.getElementById('taskTitle').value='';document.getElementById('taskDesc').value='';renderTasks();
+}
+
+async function openChat(id){
+    currentTaskId=id;
+    const task=tasks.find(t=>t.id===id);
+    currentMentor=task.mentor;
+    document.getElementById('app').innerHTML=`
+    <div class="screen active">
+        <div class="header"><button class="back-btn" onclick="renderTasks()">←</button><div class="header-title"><h1>${task.title}</h1><div class="subtitle">${task.mentor.name}</div></div></div>
+        <div class="chat-container">
+            <div class="mentor-info">
+                <div class="mentor-avatar">${task.mentor.avatar}</div>
+                <div class="mentor-details"><h2>${task.mentor.name}</h2><div class="title">${task.mentor.title}</div></div>
+                <button class="complete-btn" onclick="completeSession()">✓ Завершить</button>
+            </div>
+            <div class="messages" id="messages"></div>
+            <div class="input-area"><div class="input-wrapper">
+                <textarea class="input-field" id="msgInput" placeholder="Напишите..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+                <button class="send-btn" id="sendBtn" onclick="sendMsg()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+            </div></div>
+        </div>
+    </div>`;
+    await loadHistory();
+    if(!document.getElementById('messages').children.length)sendMsg('Привет!');
+}
+
+async function loadHistory(){
+    const res=await fetch('/api/tasks/'+currentTaskId+'/chat');
+    const msgs=await res.json();
+    msgs.forEach(m=>addMsg(m.role,m.content));
+    document.getElementById('messages').scrollTop=99999;
+}
+
+function addMsg(role,text){
+    const div=document.createElement('div');
+    div.className='message '+role;
+    const html=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    div.innerHTML=role==='assistant'?`<div class="avatar">${currentMentor.avatar}</div><div class="bubble">${html}</div>`:`<div class="bubble">${html}</div>`;
+    document.getElementById('messages').appendChild(div);
+    document.getElementById('messages').scrollTop=99999;
+}
+
+function showTyping(){
+    const div=document.createElement('div');div.className='message assistant';div.id='typing';
+    div.innerHTML=`<div class="avatar">${currentMentor.avatar}</div><div class="bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+    document.getElementById('messages').appendChild(div);
+}
+
+async function sendMsg(auto=null){
+    const input=document.getElementById('msgInput');
+    const text=auto||input.value.trim();
+    if(!text)return;
+    if(!auto){input.value='';addMsg('user',text)}
+    showTyping();document.getElementById('sendBtn').disabled=true;
+    const res=await fetch('/api/tasks/'+currentTaskId+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,user_name:user.name})});
+    const data=await res.json();
+    document.getElementById('typing')?.remove();
+    if(data.response)addMsg('assistant',data.response);
+    document.getElementById('sendBtn').disabled=false;
+}
+
+async function completeSession(){
+    const res=await fetch('/api/tasks/'+currentTaskId+'/complete-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({minutes:15})});
+    const data=await res.json();
+    if(data.success)alert('Занятие завершено! Серия: '+data.progress.streak+' дней');
+    else if(data.already)alert('Сегодня уже отмечено!');
+}
+
+render();
+</script>
+</body>
+</html>

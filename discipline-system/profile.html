@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DISCIPLINE — Профиль</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="app">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <a href="app.html" class="logo-small">DISCIPLINE</a>
+            <nav class="app-nav">
+                <a href="app.html" class="nav-link">Цели</a>
+                <a href="profile.html" class="nav-link active">Профиль</a>
+                <button id="logout-btn" class="nav-link logout">Выйти</button>
+            </nav>
+        </header>
+
+        <main class="profile-main">
+            <!-- User Info -->
+            <section class="profile-header">
+                <div class="profile-avatar" id="profile-avatar">U</div>
+                <div class="profile-info">
+                    <h1 id="profile-name">Пользователь</h1>
+                    <button id="edit-name-btn" class="edit-name-btn">✨️ Изменить имя</button>
+                    <p id="profile-email">email@example.com</p>
+                    <p class="profile-joined">В системе с <span id="profile-joined">-</span></p>
+                </div>
+            </section>
+
+            <!-- Overall Stats -->
+            <section class="stats-section">
+                <h2>Общая статистика</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-total-days">0</div>
+                        <div class="stat-label">Дней в системе</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-total-tasks">0</div>
+                        <div class="stat-label">Задач получено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-completed-tasks">0</div>
+                        <div class="stat-label">Задач выполнено</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-completion-rate">0%</div>
+                        <div class="stat-label">Процент выполнения</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-current-streak">0</div>
+                        <div class="stat-label">Текущая серия</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-best-streak">0</div>
+                        <div class="stat-label">Лучшая серия</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Goals Overview -->
+            <section class="goals-section">
+                <h2>Мои цели</h2>
+                <div id="goals-list" class="goals-list">
+                    <!-- Goals will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Activity Calendar -->
+            <section class="activity-section">
+                <h2>Активность по дням</h2>
+                <div class="activity-legend">
+                    <span class="legend-item"><span class="legend-color none"></span> Нет данных</span>
+                    <span class="legend-item"><span class="legend-color low"></span> 0-40%</span>
+                    <span class="legend-item"><span class="legend-color medium"></span> 40-80%</span>
+                    <span class="legend-item"><span class="legend-color high"></span> 80-100%</span>
+                </div>
+                <div id="activity-calendar" class="activity-calendar">
+                    <!-- Calendar will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Recent Activity -->
+            <section class="history-section">
+                <h2>История действий</h2>
+                <div id="history-list" class="history-list">
+                    <!-- History will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Patterns Analysis -->
+            <section class="patterns-section">
+                <h2>Паттерны поведения</h2>
+                <div id="patterns-list" class="patterns-list">
+                    <!-- Patterns will be inserted here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/goals.js"></script>
+    <script src="js/strategies.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html>
