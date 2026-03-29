@@ -102,6 +102,41 @@ engine = create_engine("sqlite:///./app.db")
 
 Base.metadata.create_all(bind=engine)
 
+# === Автоматическая миграция: добавляем недостающие колонки ===
+def migrate_database():
+    """ Добавляет новые колонки если их нет """
+    import sqlite3
+    conn = sqlite3.connect('./app.db')
+    cursor = conn.cursor()
+    
+    # Проверяем какие колонки есть в таблице users
+    cursor.execute("PRAGMA table_info(users)")
+    existing_columns = [row[1] for row in cursor.fetchall()]
+    
+    # Добавляем недостающие колонки
+    migrations = [
+        ("is_verified", "ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT 0"),
+        ("verification_token", "ALTER TABLE users ADD COLUMN verification_token VARCHAR"),
+        ("verification_token_expires", "ALTER TABLE users ADD COLUMN verification_token_expires DATETIME"),
+    ]
+    
+    for column_name, sql in migrations:
+        if column_name not in existing_columns:
+            try:
+                cursor.execute(sql)
+                print(f"Migration: added column '{column_name}'")
+            except Exception as e:
+                print(f"Migration error for '{column_name}': {e}")
+    
+    conn.commit()
+    conn.close()
+
+# Запускаем миграцию
+try:
+    migrate_database()
+except Exception as e:
+    print(f"Migration failed: {e}")
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
